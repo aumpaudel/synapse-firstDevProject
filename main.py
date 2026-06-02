@@ -7,6 +7,7 @@ class Item(BaseModel):
     is_available: bool = True
 
 app = FastAPI()
+items_db = []
 
 @app.get("/")
 def home():
@@ -26,4 +27,14 @@ def search(q: str, page:int = 1, limit: int = 10):
 
 @app.post("/submit")
 def create_item(item: Item):
+    items_db.append(item)
     return {"received": item}
+
+@app.get("/items")
+def get_items():
+    return {"items": items_db, "count": len(items_db)} 
+
+@app.delete("/items")
+def delete_all_items():
+    items_db.clear()  
+    return {"message": "All items deleted", "items_remaining": len(items_db)}
