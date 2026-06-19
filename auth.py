@@ -31,7 +31,7 @@ def registerUser(db: Session, user_id: str, name: str, email: str, password: str
     db.refresh(new_user)
     return {"message": "User registered successfully", "user": new_user}
 
-def authenticateAndToken(db: Session, identifier: str, password: str):
+def authenticateUser(db: Session, identifier: str, password: str):
     user = db.query(User).filter((User.email == identifier) | (User.id == identifier)).first()
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
