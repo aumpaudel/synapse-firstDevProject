@@ -5,7 +5,7 @@ class User(Base):
     __tablename__ = 'users'
 
     sno = Column(Integer, primary_key=True, autoincrement=True)
-    id = Column(String, unique=True)
+    id = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)

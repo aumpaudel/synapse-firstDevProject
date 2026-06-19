@@ -1,9 +1,15 @@
 from fastapi import FastAPI 
 from pydantic import BaseModel
-from database import engine, Base
-from models import User
+from database import engine, Base, SessionLocal
+from auth import registerUser, authenticateUser, deleteUser
 
 Base.metadata.create_all(bind=engine)
+class RegisterRequest(BaseModel):
+    user_id: str
+    name: str
+    email: str
+    password: str
+
 class Item(BaseModel):
     name: str
     price: float 
@@ -42,20 +48,23 @@ def delete_all_items():
     items_db.clear()  
     return {"message": "All items deleted", "items_remaining": len(items_db)}
 
-@synapse.post("/dataUser")
-def create_user(userid:str, name:str, email:str, password:str):
-    new_user = User(id=userid, name=name, email=email, password=password)
-    if(len(password)<8):
-        return {"message": "Password must be at least 8 characters long"}
-    with engine.begin() as conn:
-        conn.execute(User.__table__.insert(), [new_user.__dict__])
-    return {"message": "User created successfully", "user": new_user}
+@synapse.post("/register")
+def register_user(request: RegisterRequest):
+    db = SessionLocal()
+    response = registerUser(db, request.user_id, request.name, request.email, request.password)
+    db.close()
+    return response
 
-@synapse.delete("/deleteUser")
-def delete_user(userid: str):
-    with engine.begin() as conn:
-        result = conn.execute(User.__table__.delete().where(User.id == userid))
-    if result.rowcount:
-        return {"message": f"User with id {userid} deleted successfully"}
-    else:
-        return {"message": f"No user found with id {userid}"}
+@synapse.get("/authenticate")
+def authenticate_user(identifier: str, password: str):
+    db = SessionLocal()
+    response = authenticateUser(db, identifier, password)
+    db.close()
+    return response
+
+@synapse.delete("/delete")
+def delete_user(identifier: str, password: str):
+    db = SessionLocal()
+    response = deleteUser(db, identifier, password)
+    db.close()
+    return response
